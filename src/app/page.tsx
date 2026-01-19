@@ -1,7 +1,10 @@
-
 import React from 'react'
 
-const HomePage = () => {
+
+const HomePage = async () => {
+
+
+
   return (
     <div className='m-4'>
       <h1>Home Content</h1>
