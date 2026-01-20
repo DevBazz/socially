@@ -1,5 +1,4 @@
 import { currentUser } from '@clerk/nextjs/server'
-import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
 import { SignInButton, SignUpButton } from '@clerk/nextjs'
