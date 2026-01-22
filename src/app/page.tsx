@@ -1,4 +1,5 @@
 import CreatePost from '@/components/create-post'
+import WhoToFollow from '@/components/who-to-follow'
 import { currentUser } from '@clerk/nextjs/server'
 import React from 'react'
 
@@ -13,7 +14,9 @@ const user = await currentUser()
         {user ? <CreatePost /> : null}
       </div>
 
-      <div className='hidden lg:hidden lg:col-span-4 sticky top-20'></div>
+      <div className='hidden lg:block lg:col-span-4 sticky top-20'>
+        {user ? <WhoToFollow /> : null}
+      </div>
     </div>
   )
 }

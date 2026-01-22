@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { auth, currentUser } from "@clerk/nextjs/server"
+import { revalidatePath } from "next/cache"
 
 export async function syncUser() {
     try {
@@ -55,10 +56,104 @@ export async function getUserByClerkId(clerkId: string){
 
 export async function getDbUserId() {
     const {userId:clerkId} = await auth()
-    if(!clerkId) throw new Error("Unauthorized")
+    if(!clerkId) return ;
 
     const user = await getUserByClerkId(clerkId)
-    if(!user) throw new Error("User not Found") 
+    if(!user) return 
         
     return user.id    
+}
+
+export async function getRandomUsers(){
+    const userId = await getDbUserId()
+
+    try {
+        const randomUsers = await prisma.user.findMany({
+        where: {
+            AND: [
+                {
+                    NOT: {id: userId}},
+                {
+                    NOT: {
+                        followers: {
+                            some: {
+                                followerId: userId
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        select: {
+            id: true,
+            name: true,
+            username:true,
+            image:true,
+            _count: {
+                select: {
+                    followers: true
+                }
+            }
+        },
+        take: 3
+    })
+    return randomUsers
+    } catch (error) {
+        console.log("Error fetching Users", error)
+        return []
+    }
+}
+
+export async function toggleFollow(targetUserId: string){
+   try {
+    const userId= await getDbUserId()
+
+   if(!userId || userId === targetUserId) throw new Error("Cannot Follow yourself")
+
+   const existingFollow = await prisma.follows.findUnique({
+    where: {
+        followerId_followingId: {
+            followerId: userId,
+            followingId: targetUserId
+        }
+    }
+   })
+   
+   if(existingFollow){
+     // unfollow
+     await prisma.follows.delete({
+        where: {
+            followerId_followingId: {
+                followerId: userId,
+                followingId: targetUserId
+            }
+        }
+     })
+   }
+   else {
+    // follow
+  await prisma.$transaction([
+        prisma.follows.create({
+            data: {
+                followerId: userId,
+                followingId: targetUserId
+            }
+        }),
+
+        prisma.notification.create({
+            data: {
+                type: "FOLLOW",
+                userId: targetUserId, // user being followed
+                creatorId: userId // user who is following
+            }
+        })
+    ])
+   }
+   
+   revalidatePath("/")
+   return {success: true}
+   } catch (error) {
+    console.log("Error following User", error)
+    return {success: false}
+   }
 }
