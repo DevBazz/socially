@@ -59,7 +59,7 @@ export async function getDbUserId() {
     if(!clerkId) return ;
 
     const user = await getUserByClerkId(clerkId)
-    if(!user) return 
+    if(!user) return; 
         
     return user.id    
 }
