@@ -32,18 +32,25 @@ const getNotificationIcon = (type: string) => {
 function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchNotifications = async () => {
       setIsLoading(true);
+      setError(null);
       try {
+        console.log("DEBUG: Fetching notifications...");
         const data = await getNotifications();
+        console.log("DEBUG: Got data:", data);
         setNotifications(data);
 
         const unreadIds = data.filter((n) => !n.read).map((n) => n.id);
         if (unreadIds.length > 0) await markNotificationsAsRead(unreadIds);
       } catch (error) {
-        toast.error("Failed to fetch notifications");
+        const errorMessage = error instanceof Error ? error.message : "Failed to fetch notifications";
+        console.error("DEBUG: Error fetching notifications:", error);
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -53,6 +60,21 @@ function NotificationsPage() {
   }, []);
 
   if (isLoading) return <NotificationsSkeleton />;
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center text-red-500">
+              <p>Error loading notifications</p>
+              <p className="text-sm text-muted-foreground mt-2">{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

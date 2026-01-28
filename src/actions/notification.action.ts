@@ -6,13 +6,21 @@ import { getDbUserId } from "./user.actions";
 export async function getNotifications() {
   try {
     const userId = await getDbUserId();
-    if (!userId) return []; 
+    console.log("DEBUG: userId from getDbUserId:", userId);
+    if (!userId) {
+      console.log("DEBUG: No userId found, returning empty array");
+      return []; 
+    }
 
     const notifications = await prisma.notification.findMany({
       where: {
         userId,
       },
-      include: {
+      select: {
+        id: true,
+        type: true,
+        read: true,
+        createdAt: true,
         creator: {
           select: {
             id: true,
@@ -41,6 +49,7 @@ export async function getNotifications() {
       },
     });
 
+    console.log("DEBUG: notifications fetched:", notifications.length);
     return notifications;
   } catch (error) {
     console.error("Error fetching notifications:", error);
