@@ -31,7 +31,7 @@ export async function getProfileByUsername(username: string) {
     return user;
   } catch (error) {
     console.error("Error fetching profile:", error);
-    throw new Error("Failed to fetch profile");
+    return null;
   }
 }
 

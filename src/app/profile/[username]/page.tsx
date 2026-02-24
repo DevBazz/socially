@@ -5,7 +5,8 @@ import ProfileComponet from "@/components/profile-component";
 
 
 export async function generateMetadata({ params} : {params: {username: string}}) {
-    const user = await getProfileByUsername(params.username)
+     const {username} = await params;
+    const user = await getProfileByUsername(username)
     if(!user) return;
 
     return {
@@ -15,7 +16,8 @@ export async function generateMetadata({ params} : {params: {username: string}})
 }
 
 const profilePage = async ({params}: {params: {username: string}}) => {
-   const user = await getProfileByUsername(params.username)
+  const {username} = await params;
+   const user = await getProfileByUsername(username)
    if(!user) return (<NotFound />)
 
    const [posts, likesPosts, isCurrentUserFollowing] = await Promise.all([
